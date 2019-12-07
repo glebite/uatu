@@ -1,0 +1,4 @@
+Acquire:  
+- coco.names  
+- yolov3.cfg  
+- yolov3.weights  
