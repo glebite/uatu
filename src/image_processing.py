@@ -17,12 +17,14 @@ class ImageProcessing:
     ImageProcessing class
     """
     def __init__(self, yolo_path=None):
-        """
-        __init__
-        """
+        self.img_height = 0
+        self.img_width = 0
         self.raw_image = None
         self.modified_image = None
         self.processing_status = NONE
+        """
+        __init__
+        """
         self.acquisition_time = time.time()
         self.prerequisite_settings(yolo_path)
 
@@ -35,7 +37,7 @@ class ImageProcessing:
 
         # initialize the random seed
         np.random.seed(time.time())
-        self.colors = np.random.randint(0, 255, size=(len(self.labels), 3), dtype="uint8")
+        self.colours = np.random.randint(0, 255, size=(len(self.labels), 3), dtype="uint8")
         self.weights_path = os.path.sep.join([yolo_path, "yolov3.weights"])
         self.config_path = os.path.sep.join([yolo_path, "yolov3.cfg"])
         print("[INFO] loading YOLO from disk...")
@@ -50,12 +52,13 @@ class ImageProcessing:
         if os.path.isfile(file_name):
             print("exists")
             try:
-                file_handler = open(file_name)
-                self.raw_image = file_handler.read()
+                self.raw_image = cv2.imread(file_name)
+                (self.img_height, self.img_width) = self.raw_image.shape[:2]
+                self.processing_status = LOADED
             except IOError:
                 print("File not accessible")
             finally:
-                file_handler.close()
+                pass
         else:
             print("not exist")
 
