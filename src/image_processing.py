@@ -71,13 +71,69 @@ class ImageProcessing:
             print("Error...")
             return_code = False
         else:
-            print("Success?")
+            blob = cv2.dnn.blobFromImage(self.raw_image, 1 / 255.0,
+                                         (416, 416), swapRB=True, crop=False)
+            self.net.setInput(blob)
+            start = time.time()
+            layer_outputs = self.net.forward(self.layer_names)
+            end = time.time()
+            print("{} {}".format(start, end))
+            boxes = []
+            confidences = []
+            class_ids = []
+            # set to handle crap
+            args = {}
 
+            # loop over each of the layer outputs
+            for output in layer_outputs:
+                # loop over each of the detections
+                for detection in output:
+                    # extract the class ID and confidence (i.e., probability) of
+                    # the current object detection
+                    scores = detection[5:]
+                    class_id = np.argmax(scores)
+                    confidence = scores[class_id]
+
+                    # filter out weak predictions by ensuring the detected
+                    # probability is greater than the minimum probability
+                    if confidence > args["confidence"]:
+                        # scale the bounding box coordinates back relative to the
+                        # size of the image, keeping in mind that YOLO actually
+                        # returns the center (x, y)-coordinates of the bounding
+                        # box followed by the boxes' width and height
+                        box = detection[0:4] * np.array([self.img_width,
+                                                         self.img_height,
+                                                         self.img_width,
+                                                         self.img_height])
+                        (center_x, center_y, width, height) = box.astype("int")
+
+                        # use the center (x, y)-coordinates to derive the top and
+                        # and left corner of the bounding box
+                        x_corner = int(center_x - (width / 2))
+                        y_corner = int(center_y - (height / 2))
+
+                        # update our list of bounding box coordinates, confidences,
+                        # and class IDs
+                        boxes.append([x_corner, y_corner, int(width), int(height)])
+                        confidences.append(float(confidence))
+                        class_ids.append(class_id)
         return return_code
 
     def process_bounding_boxes(self):
         """
         get bounding box thingies
+
+        boxes -
+        confidences
+        args - confidence
+        args - threshold
+        classIDs -
+        x -
+        y -
+        h -
+        w -
+
+        self.colours
         """
 
     def output_adjusted_image(self, file_name=None):
