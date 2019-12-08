@@ -82,7 +82,7 @@ class ImageProcessing:
             confidences = []
             class_ids = []
             # set to handle crap
-            args = {}
+            args = {'confidence': 0.9}
 
             # loop over each of the layer outputs
             for output in layer_outputs:
@@ -97,6 +97,7 @@ class ImageProcessing:
                     # filter out weak predictions by ensuring the detected
                     # probability is greater than the minimum probability
                     if confidence > args["confidence"]:
+                        print("Found a person!")
                         # scale the bounding box coordinates back relative to the
                         # size of the image, keeping in mind that YOLO actually
                         # returns the center (x, y)-coordinates of the bounding
@@ -143,3 +144,5 @@ class ImageProcessing:
 
 if __name__=="__main__":
     x = ImageProcessing(yolo_path="../YOLO")
+    x.load_file("../static-images/4_or_more_people_clinic.jpeg")
+    x.preprocess_image()
