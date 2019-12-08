@@ -4,6 +4,7 @@ config_organizer - more than just a parser but builds what is needed
 import os
 import configparser
 
+
 class config_organizer:
     """
     config_organizer - configuration file class and other data
@@ -13,13 +14,12 @@ class config_organizer:
         initialize file and configuration data
         """
         if os.path.isfile(config_file):
-            self.config_file = config_file            
+            self.config_file = config_file
+            self.config_handler = configparser.ConfigParser()            
         else:
             raise IOError
 
     def read_config_data(self):
-        # something
-        pass
-    
-if __name__=="__main__":
-    pass
+        # TODO: error checking!
+        self.config_data = self.config_handler.read(self.config_file)
+        return self.config_handler
