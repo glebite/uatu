@@ -33,10 +33,10 @@ class ImageProcessing:
         load prerequisites
         """
         self.labels_path = os.path.sep.join([yolo_path, "coco.names"])
-        self.labels = open(self.labels.path).read().strip().split("\n")
+        self.labels = open(self.labels_path).read().strip().split("\n")
 
         # initialize the random seed
-        np.random.seed(time.time())
+        np.random.seed(42)
         self.colours = np.random.randint(0, 255, size=(len(self.labels), 3), dtype="uint8")
         self.weights_path = os.path.sep.join([yolo_path, "yolov3.weights"])
         self.config_path = os.path.sep.join([yolo_path, "yolov3.cfg"])
@@ -140,3 +140,6 @@ class ImageProcessing:
         """
         draw bounding boxes and output to file
         """
+
+if __name__=="__main__":
+    x = ImageProcessing(yolo_path="../YOLO")
