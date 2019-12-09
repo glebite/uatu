@@ -53,6 +53,7 @@ class ImageProcessing:
             print("exists")
             try:
                 self.raw_image = cv2.imread(file_name)
+                print(f"something {self.raw_image.shape}")
                 (self.img_height, self.img_width) = self.raw_image.shape[:2]
                 self.processing_status = LOADED
             except IOError:
@@ -68,7 +69,7 @@ class ImageProcessing:
         """
         return_code = True
         if self.processing_status is not LOADED:
-            print("Error...")
+            print("Error...  not loaded - cannot process")
             return_code = False
         else:
             blob = cv2.dnn.blobFromImage(self.raw_image, 1 / 255.0,
@@ -81,44 +82,28 @@ class ImageProcessing:
             boxes = []
             confidences = []
             class_ids = []
-            # set to handle crap
             args = {'confidence': 0.9}
 
-            # loop over each of the layer outputs
+            people = 0
             for output in layer_outputs:
-                # loop over each of the detections
                 for detection in output:
-                    # extract the class ID and confidence (i.e., probability) of
-                    # the current object detection
                     scores = detection[5:]
                     class_id = np.argmax(scores)
                     confidence = scores[class_id]
-
-                    # filter out weak predictions by ensuring the detected
-                    # probability is greater than the minimum probability
                     if confidence > args["confidence"]:
                         print("Found a person!")
-                        # scale the bounding box coordinates back relative to the
-                        # size of the image, keeping in mind that YOLO actually
-                        # returns the center (x, y)-coordinates of the bounding
-                        # box followed by the boxes' width and height
+                        people += 1
                         box = detection[0:4] * np.array([self.img_width,
                                                          self.img_height,
                                                          self.img_width,
                                                          self.img_height])
                         (center_x, center_y, width, height) = box.astype("int")
-
-                        # use the center (x, y)-coordinates to derive the top and
-                        # and left corner of the bounding box
                         x_corner = int(center_x - (width / 2))
                         y_corner = int(center_y - (height / 2))
-
-                        # update our list of bounding box coordinates, confidences,
-                        # and class IDs
                         boxes.append([x_corner, y_corner, int(width), int(height)])
                         confidences.append(float(confidence))
                         class_ids.append(class_id)
-        return return_code
+        return people
 
     def process_bounding_boxes(self):
         """
@@ -145,4 +130,4 @@ class ImageProcessing:
 if __name__=="__main__":
     x = ImageProcessing(yolo_path="../YOLO")
     x.load_file("../static-images/4_or_more_people_clinic.jpeg")
-    x.preprocess_image()
+    # x.preprocess_image()
