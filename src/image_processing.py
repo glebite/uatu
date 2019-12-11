@@ -11,6 +11,19 @@ PREPROCESSED = 1
 PROCESSED = 2
 LOADED = 4
 
+class ManhattenTransfer:
+    def __init__(self):
+        self.boxes = None
+        self.confidences = None
+        self.confidence = None
+        self.threshold = None
+        self.classIDs = None
+        self.x = None
+        self.y = None
+        self.h = None
+        self.w = None
+        self.people_count = 0
+    
 
 class ImageProcessing:
     """
@@ -67,6 +80,7 @@ class ImageProcessing:
         """
         preprocessing routine - people
         """
+        mt = ManhattenTransfer()
         return_code = True
         if self.processing_status is not LOADED:
             print("Error...  not loaded - cannot process")
@@ -84,7 +98,6 @@ class ImageProcessing:
             class_ids = []
             args = {'confidence': 0.9}
 
-            people = 0
             for output in layer_outputs:
                 for detection in output:
                     scores = detection[5:]
@@ -92,7 +105,7 @@ class ImageProcessing:
                     confidence = scores[class_id]
                     if confidence > args["confidence"]:
                         print("Found a person!")
-                        people += 1
+                        mt.people_count += 1
                         box = detection[0:4] * np.array([self.img_width,
                                                          self.img_height,
                                                          self.img_width,
@@ -103,7 +116,7 @@ class ImageProcessing:
                         boxes.append([x_corner, y_corner, int(width), int(height)])
                         confidences.append(float(confidence))
                         class_ids.append(class_id)
-        return people
+        return mt
 
     def process_bounding_boxes(self):
         """
@@ -121,7 +134,26 @@ class ImageProcessing:
 
         self.colours
         """
+        idxs = cv2.dnn.NMSBoxes(boxes, confidences, args["confidence"],
+                args["threshold"])
 
+        count = 0
+        # ensure at least one detection exists
+        if len(idxs) > 0:
+                # loop over the indexes we are keeping
+                for i in idxs.flatten():
+                        (x, y) = (boxes[i][0], boxes[i][1])
+                        (w, h) = (boxes[i][2], boxes[i][3])
+
+                        # draw a bounding box rectangle and label on the image
+                        color = [int(c) for c in COLORS[classIDs[i]]]
+                        cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
+                        text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
+                        if "person" in text:
+                                count += 1
+                        cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
+
+                
     def output_adjusted_image(self, file_name=None):
         """
         draw bounding boxes and output to file
