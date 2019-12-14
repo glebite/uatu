@@ -5,9 +5,9 @@ import os
 import configparser
 
 
-class config_organizer:
+class ConfigOrganizer:
     """
-    config_organizer - configuration file class and other data
+    ConfigOrganizer - configuration file class and other data
     """
     def __init__(self, config_file=None):
         """
@@ -21,5 +21,9 @@ class config_organizer:
 
     def read_config_data(self):
         # TODO: error checking!
-        self.config_data = self.config_handler.read(self.config_file)
+        self.config_handler.read(self.config_file)
         return self.config_handler
+
+    def find_cameras(self):
+        cameras = [match_string for match_string in self.config_handler if "camera_" in match_string]
+        return cameras

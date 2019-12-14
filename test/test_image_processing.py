@@ -16,12 +16,12 @@ def test_image_processing_creation():
 def test_image_processing_prerequisite_does_not_crash():
     ip_obj = ImageProcessing(yolo_path="../YOLO")
     ip_obj.load_file("../static-images/4_or_more_people_clinic.jpeg")
-    mt = ip_obj.preprocess_image()
-    assert mt.people_count == 6
+    ip_obj.preprocess_image()
+    assert ip_obj.people_count == 6
 
 @pytest.mark.test_id(4)
 def test_image_processing_prerequisite_no_people():
     ip_obj = ImageProcessing(yolo_path="../YOLO")
     ip_obj.load_file("../static-images/no_people.jpg")
-    mt = ip_obj.preprocess_image()
-    assert mt.people_count == 0
+    ip_obj.preprocess_image()
+    assert ip_obj.people_count == 0
