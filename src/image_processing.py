@@ -11,23 +11,13 @@ PREPROCESSED = 1
 PROCESSED = 2
 LOADED = 4
 
-class ManhattenTransfer:
-    def __init__(self):
-        self.boxes = None
-        self.confidences = None
-        self.confidence = None
-        self.threshold = None
-        self.classIDs = None
-        self.x = None
-        self.y = None
-        self.h = None
-        self.w = None
-        self.people_count = 0
-    
 
 class ImageProcessing:
     """
     ImageProcessing class
+
+    # pylint: disable=too-many-instance-attributes
+    #
     """
     def __init__(self, yolo_path=None):
         self.img_height = 0
@@ -35,6 +25,16 @@ class ImageProcessing:
         self.raw_image = None
         self.modified_image = None
         self.processing_status = NONE
+        self.boxes = list()
+        self.confidences = None
+        self.confidence = None
+        self.threshold = None
+        self.class_ids = list()
+        self.x_pos = None
+        self.y_pos = None
+        self.box_height = None
+        self.box_width = None
+        self.people_count = 0
         """
         __init__
         """
@@ -80,11 +80,8 @@ class ImageProcessing:
         """
         preprocessing routine - people
         """
-        mt = ManhattenTransfer()
-        return_code = True
         if self.processing_status is not LOADED:
             print("Error...  not loaded - cannot process")
-            return_code = False
         else:
             blob = cv2.dnn.blobFromImage(self.raw_image, 1 / 255.0,
                                          (416, 416), swapRB=True, crop=False)
@@ -105,7 +102,7 @@ class ImageProcessing:
                     confidence = scores[class_id]
                     if confidence > args["confidence"]:
                         print("Found a person!")
-                        mt.people_count += 1
+                        self.people_count += 1
                         box = detection[0:4] * np.array([self.img_width,
                                                          self.img_height,
                                                          self.img_width,
@@ -116,49 +113,37 @@ class ImageProcessing:
                         boxes.append([x_corner, y_corner, int(width), int(height)])
                         confidences.append(float(confidence))
                         class_ids.append(class_id)
-        return mt
+        return
 
-    def process_bounding_boxes(self,mt):
+    def process_bounding_boxes(self):
         """
         get bounding box thingies
 
-        boxes -
-        confidences
-        args - confidence
-        args - threshold
-        classIDs -
-        x -
-        y -
-        h -
-        w -
-
-        self.colours
         """
-        idxs = cv2.dnn.NMSBoxes(mt.boxes, mt.confidences, mt.args["confidence"], mt.args["threshold"])
+        idxs = cv2.dnn.NMSBoxes(self.boxes, self.confidences, self.args["confidence"], self.args["threshold"])
 
         count = 0
         # ensure at least one detection exists
         if len(idxs) > 0:
             # loop over the indexes we are keeping
             for i in idxs.flatten():
-                (x, y) = (mt.boxes[i][0], mt.boxes[i][1])
-                (w, h) = (mt.boxes[i][2], mt.boxes[i][3])
+                (self.x_pos, self.y_pos) = (self.boxes[i][0], self.boxes[i][1])
+                (self.box_width, self.box_height) = (self.boxes[i][2], self.boxes[i][3])
 
                 # draw a bounding box rectangle and label on the image
-                color = [int(c) for c in COLORS[classIDs[i]]]
-                cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
-                text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
+                color = [int(c) for c in COLORS[self.class_ids[i]]]
+                cv2.rectangle(self.image, (self.x_pos, self.y_pos), (self.x_pos + self.box_width, self.y_pos + self.box_height), color, 2)
+                text = "{}: {:.4f}".format(LABELS[self.class_ids[i]], confidences[i])
                 if "person" in text:
                     count += 1
-                    cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
+                    cv2.putText(self.image, text, (self.x_pos, self.y_pos - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-                
+
     def output_adjusted_image(self, file_name=None):
         """
         draw bounding boxes and output to file
         """
 
-if __name__=="__main__":
-    x = ImageProcessing(yolo_path="../YOLO")
-    x.load_file("../static-images/4_or_more_people_clinic.jpeg")
-    # x.preprocess_image()
+if __name__ == "__main__":
+    X_OBJ = ImageProcessing(yolo_path="../YOLO")
+    X_OBJ.load_file("../static-images/4_or_more_people_clinic.jpeg")
