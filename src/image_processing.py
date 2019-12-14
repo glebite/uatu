@@ -38,6 +38,7 @@ class ImageProcessing:
         self.box_height = None
         self.box_width = None
         self.people_count = 0
+        self.args = None
         """
         __init__
         """
@@ -84,7 +85,7 @@ class ImageProcessing:
         preprocessing routine - people
         """
         # pylint: disable=too-many-instance-attributes
-        
+
         if self.processing_status is not LOADED:
             print("Error...  not loaded - cannot process")
         else:
@@ -95,17 +96,17 @@ class ImageProcessing:
             layer_outputs = self.net.forward(self.layer_names)
             end = time.time()
             print("{} {}".format(start, end))
-            boxes = []
-            confidences = []
+            self.boxes = []
+            self.confidences = []
             class_ids = []
-            args = {'confidence': 0.9}
+            self.args = {'confidence': 0.9}
 
             for output in layer_outputs:
                 for detection in output:
                     scores = detection[5:]
                     class_id = np.argmax(scores)
                     confidence = scores[class_id]
-                    if confidence > args["confidence"]:
+                    if confidence > self.args["confidence"]:
                         print("Found a person!")
                         self.people_count += 1
                         box = detection[0:4] * np.array([self.img_width,
@@ -115,21 +116,23 @@ class ImageProcessing:
                         (center_x, center_y, width, height) = box.astype("int")
                         x_corner = int(center_x - (width / 2))
                         y_corner = int(center_y - (height / 2))
-                        boxes.append([x_corner, y_corner, int(width), int(height)])
-                        confidences.append(float(confidence))
+                        self.boxes.append([x_corner, y_corner, int(width), int(height)])
+                        self.confidences.append(float(confidence))
                         class_ids.append(class_id)
-        return
 
     def process_bounding_boxes(self):
         """
         get bounding box thingies
 
         """
-        idxs = cv2.dnn.NMSBoxes(self.boxes, self.confidences, self.args["confidence"], self.args["threshold"])
+        idxs = cv2.dnn.NMSBoxes(self.boxes,
+                                self.confidences,
+                                self.args["confidence"],
+                                self.args["threshold"])
 
         count = 0
         # ensure at least one detection exists
-        if len(idxs) > 0:
+        if idxs:
             # loop over the indexes we are keeping
             for i in idxs.flatten():
                 (self.x_pos, self.y_pos) = (self.boxes[i][0], self.boxes[i][1])
@@ -137,11 +140,14 @@ class ImageProcessing:
 
                 # draw a bounding box rectangle and label on the image
                 color = [int(c) for c in COLORS[self.class_ids[i]]]
-                cv2.rectangle(self.image, (self.x_pos, self.y_pos), (self.x_pos + self.box_width, self.y_pos + self.box_height), color, 2)
-                text = "{}: {:.4f}".format(LABELS[self.class_ids[i]], confidences[i])
+                cv2.rectangle(self.raw_image, (self.x_pos, self.y_pos),
+                              (self.x_pos + self.box_width, self.y_pos + self.box_height),
+                              color, 2)
+                text = "{}: {:.4f}".format(LABELS[self.class_ids[i]], self.confidences[i])
                 if "person" in text:
                     count += 1
-                    cv2.putText(self.image, text, (self.x_pos, self.y_pos - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    cv2.putText(self.modified_image, text, (self.x_pos, self.y_pos - 5)
+                                , cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
     def output_adjusted_image(self, file_name=None):
