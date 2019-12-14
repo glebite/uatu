@@ -118,7 +118,7 @@ class ImageProcessing:
                         class_ids.append(class_id)
         return mt
 
-    def process_bounding_boxes(self):
+    def process_bounding_boxes(self,mt):
         """
         get bounding box thingies
 
@@ -134,24 +134,23 @@ class ImageProcessing:
 
         self.colours
         """
-        idxs = cv2.dnn.NMSBoxes(boxes, confidences, args["confidence"],
-                args["threshold"])
+        idxs = cv2.dnn.NMSBoxes(mt.boxes, mt.confidences, mt.args["confidence"], mt.args["threshold"])
 
         count = 0
         # ensure at least one detection exists
         if len(idxs) > 0:
-                # loop over the indexes we are keeping
-                for i in idxs.flatten():
-                        (x, y) = (boxes[i][0], boxes[i][1])
-                        (w, h) = (boxes[i][2], boxes[i][3])
+            # loop over the indexes we are keeping
+            for i in idxs.flatten():
+                (x, y) = (mt.boxes[i][0], mt.boxes[i][1])
+                (w, h) = (mt.boxes[i][2], mt.boxes[i][3])
 
-                        # draw a bounding box rectangle and label on the image
-                        color = [int(c) for c in COLORS[classIDs[i]]]
-                        cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
-                        text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
-                        if "person" in text:
-                                count += 1
-                        cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
+                # draw a bounding box rectangle and label on the image
+                color = [int(c) for c in COLORS[classIDs[i]]]
+                cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
+                text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
+                if "person" in text:
+                    count += 1
+                    cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
 
                 
     def output_adjusted_image(self, file_name=None):
