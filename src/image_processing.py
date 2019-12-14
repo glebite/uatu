@@ -15,11 +15,12 @@ LOADED = 4
 class ImageProcessing:
     """
     ImageProcessing class
-
-    # pylint: disable=too-many-instance-attributes
-    #
     """
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, yolo_path=None):
+        # image could be consolidated into one dictionary
+        # image = {'height': 0, 'width': 0, 'raw_image': None, 'modified_image': None}
         self.img_height = 0
         self.img_width = 0
         self.raw_image = None
@@ -30,6 +31,8 @@ class ImageProcessing:
         self.confidence = None
         self.threshold = None
         self.class_ids = list()
+        # box could be consolidated into a dictionary:
+        # box = {'x': 0, 'y': 0, 'height': 0, 'width': 0}
         self.x_pos = None
         self.y_pos = None
         self.box_height = None
@@ -80,6 +83,8 @@ class ImageProcessing:
         """
         preprocessing routine - people
         """
+        # pylint: disable=too-many-instance-attributes
+        
         if self.processing_status is not LOADED:
             print("Error...  not loaded - cannot process")
         else:
