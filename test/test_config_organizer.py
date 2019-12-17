@@ -27,3 +27,9 @@ def test_config_wildcard_camers():
     co_obj = ConfigOrganizer(config_file="./test.cfg")
     co_obj.read_config_data()
     assert len(co_obj.find_cameras()) == 2
+
+@pytest.mark.test_id(5)
+def test_get_camera_1_city():
+    co_obj = ConfigOrganizer(config_file="./test.cfg")
+    co_obj.read_config_data()
+    assert co_obj.config_handler['camera_1']['city'] == "Fars"   

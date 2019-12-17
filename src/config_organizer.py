@@ -25,7 +25,11 @@ class ConfigOrganizer:
         return self.config_handler
 
     def find_cameras(self):
-        """ find_cameras """
+        """ 
+        find_cameras 
+        - helps to define cameras from the config file in case there are 
+          other fields
+        """
         cameras = [match_string for match_string in self.config_handler
                    if "camera_" in match_string]
         return cameras
