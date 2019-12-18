@@ -33,3 +33,21 @@ def test_get_camera_1_city():
     co_obj = ConfigOrganizer(config_file="./test.cfg")
     co_obj.read_config_data()
     assert co_obj.config_handler['camera_1']['city'] == "Fars"   
+
+@pytest.mark.test_id(6)
+def test_get_camera_1_name():
+    co_obj = ConfigOrganizer(config_file="./test.cfg")
+    co_obj.read_config_data()
+    assert co_obj.config_handler['camera_1']['name'] == "street view"
+
+@pytest.mark.test_id(7)
+def test_get_camera_1_name():
+    co_obj = ConfigOrganizer(config_file="./test.cfg")
+    co_obj.read_config_data()
+    assert co_obj.config_handler['camera_1']['province'] == "Shiraz"
+
+@pytest.mark.test_id(8)
+def test_get_camera_1_name():
+    co_obj = ConfigOrganizer(config_file="./test.cfg")
+    co_obj.read_config_data()
+    assert co_obj.config_handler['camera_1']['country'] == "Iran"
