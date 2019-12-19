@@ -154,7 +154,4 @@ class ImageProcessing:
         """
         draw bounding boxes and output to file
         """
-
-if __name__ == "__main__":
-    X_OBJ = ImageProcessing(yolo_path="../YOLO")
-    X_OBJ.load_file("../static-images/4_or_more_people_clinic.jpeg")
+        
