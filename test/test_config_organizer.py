@@ -41,13 +41,19 @@ def test_get_camera_1_name():
     assert co_obj.config_handler['camera_1']['name'] == "street view"
 
 @pytest.mark.test_id(7)
-def test_get_camera_1_name():
+def test_get_camera_1_province():
     co_obj = ConfigOrganizer(config_file="./test.cfg")
     co_obj.read_config_data()
     assert co_obj.config_handler['camera_1']['province'] == "Shiraz"
 
 @pytest.mark.test_id(8)
-def test_get_camera_1_name():
+def test_get_camera_1_country():
     co_obj = ConfigOrganizer(config_file="./test.cfg")
     co_obj.read_config_data()
     assert co_obj.config_handler['camera_1']['country'] == "Iran"
+
+@pytest.mark.test_id(8)
+def test_get_camera_1_url():
+    co_obj = ConfigOrganizer(config_file="./test.cfg")
+    co_obj.read_config_data()
+    assert co_obj.config_handler['camera_1']['url'] is not None
