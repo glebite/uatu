@@ -10,9 +10,12 @@ class Acquisition:
         """
         pass
 
-    def retrieve(self, url):
+    def retrieve(self, url, temp_name="tmp_name.jpg"):
         """
         retrieve item/image as tmp_name.jpg
         """
-        r = requests.get(url, allow_redirects=True)
-        open('tmp_name.jpg', 'wb').write(r.content)
+        try:
+            r = requests.get(url, allow_redirects=True)
+            open(temp_name, 'wb').write(r.content)
+        except Exception as e:
+            print(e)
