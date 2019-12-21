@@ -12,7 +12,7 @@ class Acquisition:
 
     def retrieve(self, url, temp_name="tmp_name.jpg"):
         """
-        retrieve item/image as tmp_name.jpg
+        retrieve item/image as tmp_name.jpg or location
         """
         try:
             r = requests.get(url, allow_redirects=True)

@@ -99,7 +99,7 @@ class ImageProcessing:
             self.boxes = []
             self.confidences = []
             class_ids = []
-            self.args = {'confidence': 0.9}
+            self.args = {'confidence': 0.9, 'threshold': 0.9}
 
             for output in layer_outputs:
                 for detection in output:
@@ -154,4 +154,5 @@ class ImageProcessing:
         """
         draw bounding boxes and output to file
         """
+        cv2.imwrite(file_name, self.modified_image)
         

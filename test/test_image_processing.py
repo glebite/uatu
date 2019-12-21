@@ -25,3 +25,12 @@ def test_image_processing_prerequisite_no_people():
     ip_obj.load_file("../static-images/no_people.jpg")
     ip_obj.preprocess_image()
     assert ip_obj.people_count == 0
+
+@pytest.mark.test_id(5)
+def test_image_processing_save_modified():
+    ip_obj = ImageProcessing(yolo_path="../YOLO")
+    ip_obj.load_file("../static-images/no_people.jpg")
+    ip_obj.preprocess_image()
+    ip_obj.process_bounding_boxes()
+    ip_obj.output_adjusted_image("what.jpg")
+    assert ip_obj.people_count == 0
