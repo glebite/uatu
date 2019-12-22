@@ -75,10 +75,13 @@ class ImageProcessing:
                 self.processing_status = LOADED
             except IOError:
                 print("File not accessible")
+                raise IOError
+            except AttributeError:
+                raise AttributeError
             finally:
                 pass
         else:
-            print("not exist")
+            raise IOError
 
     def preprocess_image(self):
         """
@@ -156,5 +159,6 @@ class ImageProcessing:
         """
         draw bounding boxes and output to file
         """
+        # TODO: should probably do some error handling here...
         cv2.imwrite(file_name, self.modified_image)
         
