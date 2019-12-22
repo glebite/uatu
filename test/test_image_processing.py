@@ -4,6 +4,7 @@ All tests will be in @pytest markup format.
 """
 import sys
 import pytest
+import cv2
 sys.path.append('../src')
 from image_processing import ImageProcessing
 
@@ -33,4 +34,5 @@ def test_image_processing_save_modified():
     ip_obj.preprocess_image()
     ip_obj.process_bounding_boxes()
     ip_obj.output_adjusted_image("what.jpg")
-    assert ip_obj.people_count == 0
+    img = cv2.imread("what.jpg")
+    assert img is not None

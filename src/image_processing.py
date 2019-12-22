@@ -130,6 +130,7 @@ class ImageProcessing:
                                 self.args["confidence"],
                                 self.args["threshold"])
 
+        self.modified_image = cv2.copyMakeBorder(self.raw_image,0,0,0,0,cv2.BORDER_REPLICATE)        
         count = 0
         # ensure at least one detection exists
         if idxs:
@@ -140,7 +141,7 @@ class ImageProcessing:
 
                 # draw a bounding box rectangle and label on the image
                 color = [int(c) for c in COLORS[self.class_ids[i]]]
-                cv2.rectangle(self.raw_image, (self.x_pos, self.y_pos),
+                cv2.rectangle(self.modified_image, (self.x_pos, self.y_pos),
                               (self.x_pos + self.box_width, self.y_pos + self.box_height),
                               color, 2)
                 text = "{}: {:.4f}".format(LABELS[self.class_ids[i]], self.confidences[i])
