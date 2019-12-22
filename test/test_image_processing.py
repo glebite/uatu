@@ -36,3 +36,12 @@ def test_image_processing_save_modified():
     ip_obj.output_adjusted_image("what.jpg")
     img = cv2.imread("what.jpg")
     assert img is not None
+
+@pytest.mark.test_id(6)
+def test_image_processing_prerequisite_saves():
+    ip_obj = ImageProcessing(yolo_path="../YOLO")
+    ip_obj.load_file("../static-images/4_or_more_people_clinic.jpeg")
+    ip_obj.preprocess_image()
+    ip_obj.process_bounding_boxes()
+    ip_obj.output_adjusted_image("what2.jpg")    
+    assert ip_obj.people_count == 6

@@ -118,7 +118,7 @@ class ImageProcessing:
                         y_corner = int(center_y - (height / 2))
                         self.boxes.append([x_corner, y_corner, int(width), int(height)])
                         self.confidences.append(float(confidence))
-                        class_ids.append(class_id)
+                        self.class_ids.append(class_id)
 
     def process_bounding_boxes(self):
         """
@@ -133,18 +133,19 @@ class ImageProcessing:
         self.modified_image = cv2.copyMakeBorder(self.raw_image,0,0,0,0,cv2.BORDER_REPLICATE)        
         count = 0
         # ensure at least one detection exists
-        if idxs:
+        if len(idxs):
             # loop over the indexes we are keeping
             for i in idxs.flatten():
                 (self.x_pos, self.y_pos) = (self.boxes[i][0], self.boxes[i][1])
                 (self.box_width, self.box_height) = (self.boxes[i][2], self.boxes[i][3])
 
                 # draw a bounding box rectangle and label on the image
-                color = [int(c) for c in COLORS[self.class_ids[i]]]
+                print("Size of class_ids: {}".format(len(self.class_ids)))
+                color = [int(c) for c in self.colours[self.class_ids[i]]]
                 cv2.rectangle(self.modified_image, (self.x_pos, self.y_pos),
                               (self.x_pos + self.box_width, self.y_pos + self.box_height),
                               color, 2)
-                text = "{}: {:.4f}".format(LABELS[self.class_ids[i]], self.confidences[i])
+                text = "{}: {:.4f}".format(self.labels[self.class_ids[i]], self.confidences[i])
                 if "person" in text:
                     count += 1
                     cv2.putText(self.modified_image, text, (self.x_pos, self.y_pos - 5)
