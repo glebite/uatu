@@ -49,6 +49,7 @@ class ImageProcessing:
         """
         load prerequisites
         """
+        # TODO: error checking
         self.labels_path = os.path.sep.join([yolo_path, "coco.names"])
         self.labels = open(self.labels_path).read().strip().split("\n")
 
@@ -57,7 +58,6 @@ class ImageProcessing:
         self.colours = np.random.randint(0, 255, size=(len(self.labels), 3), dtype="uint8")
         self.weights_path = os.path.sep.join([yolo_path, "yolov3.weights"])
         self.config_path = os.path.sep.join([yolo_path, "yolov3.cfg"])
-        print("[INFO] loading YOLO from disk...")
         self.net = cv2.dnn.readNetFromDarknet(self.config_path, self.weights_path)
         self.layer_names = self.net.getLayerNames()
         self.layer_names = [self.layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
@@ -67,14 +67,11 @@ class ImageProcessing:
         load_file - loads the file
         """
         if os.path.isfile(file_name):
-            print("exists")
             try:
                 self.raw_image = cv2.imread(file_name)
-                print(f"something {self.raw_image.shape}")
                 (self.img_height, self.img_width) = self.raw_image.shape[:2]
                 self.processing_status = LOADED
             except IOError:
-                print("File not accessible")
                 raise IOError
             except AttributeError:
                 raise AttributeError
@@ -95,10 +92,7 @@ class ImageProcessing:
             blob = cv2.dnn.blobFromImage(self.raw_image, 1 / 255.0,
                                          (416, 416), swapRB=True, crop=False)
             self.net.setInput(blob)
-            start = time.time()
             layer_outputs = self.net.forward(self.layer_names)
-            end = time.time()
-            print("{} {}".format(start, end))
             self.boxes = []
             self.confidences = []
             class_ids = []
@@ -110,7 +104,6 @@ class ImageProcessing:
                     class_id = np.argmax(scores)
                     confidence = scores[class_id]
                     if confidence > self.args["confidence"]:
-                        print("Found a person!")
                         self.people_count += 1
                         box = detection[0:4] * np.array([self.img_width,
                                                          self.img_height,
@@ -143,7 +136,6 @@ class ImageProcessing:
                 (self.box_width, self.box_height) = (self.boxes[i][2], self.boxes[i][3])
 
                 # draw a bounding box rectangle and label on the image
-                print("Size of class_ids: {}".format(len(self.class_ids)))
                 color = [int(c) for c in self.colours[self.class_ids[i]]]
                 cv2.rectangle(self.modified_image, (self.x_pos, self.y_pos),
                               (self.x_pos + self.box_width, self.y_pos + self.box_height),
@@ -160,5 +152,8 @@ class ImageProcessing:
         draw bounding boxes and output to file
         """
         # TODO: should probably do some error handling here...
-        cv2.imwrite(file_name, self.modified_image)
+        try:
+            cv2.imwrite(file_name, self.modified_image)
+        except IOError:
+            raise IOError
         
