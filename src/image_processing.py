@@ -19,6 +19,7 @@ class ImageProcessing:
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, yolo_path=None):
+        # TODO: cleanup
         # image could be consolidated into one dictionary
         # image = {'height': 0, 'width': 0, 'raw_image': None, 'modified_image': None}
         self.img_height = 0
@@ -31,8 +32,10 @@ class ImageProcessing:
         self.confidence = None
         self.threshold = None
         self.class_ids = list()
+        # TODO: cleanup
         # box could be consolidated into a dictionary:
         # box = {'x': 0, 'y': 0, 'height': 0, 'width': 0}
+        self.box = {'x_pos': None, 'y_pos': None, 'box_height': None, 'box_width': None}
         self.x_pos = None
         self.y_pos = None
         self.box_height = None
@@ -53,6 +56,7 @@ class ImageProcessing:
         self.labels_path = os.path.sep.join([yolo_path, "coco.names"])
         self.labels = open(self.labels_path).read().strip().split("\n")
 
+        # TODO: error checking
         # initialize the random seed
         np.random.seed(42)
         self.colours = np.random.randint(0, 255, size=(len(self.labels), 3), dtype="uint8")
@@ -87,6 +91,7 @@ class ImageProcessing:
         # pylint: disable=too-many-instance-attributes
 
         if self.processing_status is not LOADED:
+            # TODO: raise an exception
             print("Error...  not loaded - cannot process")
         else:
             blob = cv2.dnn.blobFromImage(self.raw_image, 1 / 255.0,
@@ -95,7 +100,7 @@ class ImageProcessing:
             layer_outputs = self.net.forward(self.layer_names)
             self.boxes = []
             self.confidences = []
-            class_ids = []
+            self.class_ids = []
             self.args = {'confidence': 0.9, 'threshold': 0.9}
 
             for output in layer_outputs:
@@ -126,10 +131,10 @@ class ImageProcessing:
                                 self.args["confidence"],
                                 self.args["threshold"])
 
-        self.modified_image = cv2.copyMakeBorder(self.raw_image,0,0,0,0,cv2.BORDER_REPLICATE)        
+        self.modified_image = cv2.copyMakeBorder(self.raw_image, 0, 0, 0, 0, cv2.BORDER_REPLICATE)
         count = 0
         # ensure at least one detection exists
-        if len(idxs):
+        if idxs:
             # loop over the indexes we are keeping
             for i in idxs.flatten():
                 (self.x_pos, self.y_pos) = (self.boxes[i][0], self.boxes[i][1])
@@ -156,4 +161,4 @@ class ImageProcessing:
             cv2.imwrite(file_name, self.modified_image)
         except IOError:
             raise IOError
-        
+
