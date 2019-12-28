@@ -134,7 +134,7 @@ class ImageProcessing:
         self.modified_image = cv2.copyMakeBorder(self.raw_image, 0, 0, 0, 0, cv2.BORDER_REPLICATE)
         count = 0
         # ensure at least one detection exists
-        if idxs:
+        if len(idxs):
             # loop over the indexes we are keeping
             for i in idxs.flatten():
                 (self.x_pos, self.y_pos) = (self.boxes[i][0], self.boxes[i][1])
