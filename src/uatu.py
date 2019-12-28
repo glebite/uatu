@@ -5,6 +5,7 @@ from image_processing import ImageProcessing
 from config_organizer import ConfigOrganizer
 from acquisition import Acquisition
 import random
+import requests
 
 
 class Uatu:
@@ -28,7 +29,12 @@ class Uatu:
         """
         counter = 0
         for camera in self.cfg_organizer.find_cameras():
-            self.acq_obj.retrieve(self.cfg_organizer.config_handler[camera]['url'], '/tmp/image.jpg')
+            try:
+                self.acq_obj.retrieve(self.cfg_organizer.config_handler[camera]['url'], '/tmp/image.jpg')
+            except requests.exceptions.Timeout  as e:
+                # stuff
+                print(f'{camera} NaN')
+                continue
             self.img_processing = ImageProcessing(yolo_path=
                                                   self.cfg_organizer.config_handler
                                                   ['system']['yolo_dir'])            
