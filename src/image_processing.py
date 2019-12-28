@@ -101,7 +101,7 @@ class ImageProcessing:
             self.boxes = []
             self.confidences = []
             self.class_ids = []
-            self.args = {'confidence': 0.9, 'threshold': 0.9}
+            self.args = {'confidence': 0.8, 'threshold': 0.8}
 
             for output in layer_outputs:
                 for detection in output:
@@ -109,7 +109,6 @@ class ImageProcessing:
                     class_id = np.argmax(scores)
                     confidence = scores[class_id]
                     if confidence > self.args["confidence"]:
-                        self.people_count += 1
                         box = detection[0:4] * np.array([self.img_width,
                                                          self.img_height,
                                                          self.img_width,
@@ -132,7 +131,6 @@ class ImageProcessing:
                                 self.args["threshold"])
 
         self.modified_image = cv2.copyMakeBorder(self.raw_image, 0, 0, 0, 0, cv2.BORDER_REPLICATE)
-        count = 0
         # ensure at least one detection exists
         if len(idxs):
             # loop over the indexes we are keeping
@@ -142,12 +140,12 @@ class ImageProcessing:
 
                 # draw a bounding box rectangle and label on the image
                 color = [int(c) for c in self.colours[self.class_ids[i]]]
-                cv2.rectangle(self.modified_image, (self.x_pos, self.y_pos),
-                              (self.x_pos + self.box_width, self.y_pos + self.box_height),
-                              color, 2)
                 text = "{}: {:.4f}".format(self.labels[self.class_ids[i]], self.confidences[i])
                 if "person" in text:
-                    count += 1
+                    cv2.rectangle(self.modified_image, (self.x_pos, self.y_pos),
+                                  (self.x_pos + self.box_width, self.y_pos + self.box_height),
+                                  color, 2)
+                    self.people_count += 1
                     cv2.putText(self.modified_image, text, (self.x_pos, self.y_pos - 5)
                                 , cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
