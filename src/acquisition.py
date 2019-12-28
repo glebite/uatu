@@ -15,7 +15,7 @@ class Acquisition:
         retrieve item/image as tmp_name.jpg or location
         """
         try:
-            r = requests.get(url, allow_redirects=True)
+            r = requests.get(url, allow_redirects=True, timeout=30)
             open(temp_name, 'wb').write(r.content)
         except Exception as e:
             print(e)
