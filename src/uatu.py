@@ -27,13 +27,15 @@ class Uatu:
         """
         run -
         """
-        counter = 0
+        counter = 1
         for camera in self.cfg_organizer.find_cameras():
+            counter += 1
             try:
                 self.acq_obj.retrieve(self.cfg_organizer.config_handler[camera]['url'], '/tmp/image.jpg')
             except requests.exceptions.Timeout  as e:
                 # stuff
                 print(f'{camera} NaN')
+
                 continue
             self.img_processing = ImageProcessing(yolo_path=
                                                   self.cfg_organizer.config_handler
@@ -43,8 +45,6 @@ class Uatu:
             self.img_processing.process_bounding_boxes()
             self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
             print(f'{camera} {self.img_processing.people_count}')
-            counter += 1
-            
 
     def debug_dump(self):
         print('Building camear information')

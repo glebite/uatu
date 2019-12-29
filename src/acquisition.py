@@ -18,5 +18,4 @@ class Acquisition:
             r = requests.get(url, allow_redirects=True, timeout=60)
             open(temp_name, 'wb').write(r.content)
         except Exception as e:
-            print("Exception? {}".format(e))
             raise requests.exceptions.Timeout
