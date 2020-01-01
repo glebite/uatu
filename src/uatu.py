@@ -8,7 +8,11 @@ import random
 import requests
 import time
 import sys
+import logging
 
+LOGGER = logging.getLogger('uatu')
+FH = logging.FileHandler('uatu.log')
+logger.addHandler(FH)
 
 class Uatu:
     """
@@ -18,6 +22,7 @@ class Uatu:
         """
         __init__ - self
         """
+        LOGGER.info("initializing UATU")
         self.config_file = config_file_path
         self.cfg_organizer = ConfigOrganizer(config_file=self.config_file)
         self.cfg_organizer.read_config_data()
@@ -27,6 +32,7 @@ class Uatu:
         """
         run -
         """
+        LOGGER.info("running...")
         csv_output = ""
         counter = 1
         for camera in self.cfg_organizer.find_cameras():
