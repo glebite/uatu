@@ -12,7 +12,7 @@ import logging
 
 LOGGER = logging.getLogger('uatu')
 FH = logging.FileHandler('uatu.log')
-logger.addHandler(FH)
+LOGGER.addHandler(FH)
 
 class Uatu:
     """
