@@ -10,6 +10,7 @@ import time
 import sys
 import logging
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
 LOGGER = logging.getLogger('uatu')
 FH = logging.FileHandler('uatu.log')
 LOGGER.addHandler(FH)
@@ -36,11 +37,13 @@ class Uatu:
         csv_output = ""
         counter = 1
         for camera in self.cfg_organizer.find_cameras():
+            LOGGER.info("Working on camera: {}".format(camera))
             counter += 1
             try:
                 self.acq_obj.retrieve(self.cfg_organizer.config_handler[camera]['url'], '/tmp/image.jpg')
             except requests.exceptions.Timeout  as e:
                 # stuff
+                LOGGER.info("Failure in camera retrieval for {}".format(camera))
                 csv_output += "{},{},NaN,".format(camera, time.time())                
                 continue
             self.img_processing = ImageProcessing(yolo_path=
@@ -51,6 +54,7 @@ class Uatu:
             self.img_processing.process_bounding_boxes()
             self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
             csv_output += "{},{},{},".format(camera, time.time(), self.img_processing.people_count)
+            LOGGER.info("camera: {} people: {}".format(camera,self.img_processing.people_count))
         print(csv_output)
 
     def debug_dump(self):
