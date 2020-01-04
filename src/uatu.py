@@ -12,14 +12,10 @@ import logging
 
 LOGGER = logging.getLogger('uatu')
 LOGGER.setLevel(logging.DEBUG)
-CH = logging.StreamHandler()
 FH = logging.FileHandler('uatu.log')
 FORMATTER = logging.Formatter('%(asctime)s - %(name)s -%(levelname)s - %(message)s')
-CH.setFormatter(FORMATTER)
-CH.setLevel(logging.DEBUG
 FH.setFormatter(FORMATTER)
 FH.setLevel(logging.DEBUG)
-LOGGER.addHandler(CH)
 LOGGER.addHandler(FH)
 
 class Uatu:
@@ -30,7 +26,6 @@ class Uatu:
         """
         __init__ - self
         """
-        print("initializing...")
         LOGGER.info("initializing UATU")
         self.config_file = config_file_path
         self.cfg_organizer = ConfigOrganizer(config_file=self.config_file)
