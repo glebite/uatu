@@ -59,12 +59,12 @@ class Uatu:
             csv_output += "{},{},{},".format(camera, time.time(), self.img_processing.people_count)
             LOGGER.info("camera: {} people: {}".format(camera,self.img_processing.people_count))
         print(csv_output)
-
+        
     def debug_dump(self):
-        print('Building camear information')
+        LOGGER.debug('Building camera information')
         for camera in self.cfg_organizer.find_cameras():
-            print(f'{camera}')
-            print('\t{}'.format(self.cfg_organizer.config_handler[camera]['url']))
+            LOGGER.debug(f'{camera}')
+            LOGGER.debug('\t{}'.format(self.cfg_organizer.config_handler[camera]['url']))
 
 
 if __name__ == "__main__":
