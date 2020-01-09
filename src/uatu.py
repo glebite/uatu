@@ -1,5 +1,5 @@
 """
-uatu.py -
+uatu.py - he who watches
 """
 from image_processing import ImageProcessing
 from config_organizer import ConfigOrganizer
@@ -26,29 +26,32 @@ class Uatu:
         """
         __init__ - self
         """
-        LOGGER.info("initializing UATU")
+        LOGGER.info("Initializing UATU.")
         self.config_file = config_file_path
         self.cfg_organizer = ConfigOrganizer(config_file=self.config_file)
         self.cfg_organizer.read_config_data()
         self.acq_obj = Acquisition()
+        LOGGER.info("Completed initialization.")
 
     def run(self):
         """
         run -
         """
-        LOGGER.info("running...")
+        LOGGER.info("Running.")
         csv_output = ""
         counter = 1
         for camera in self.cfg_organizer.find_cameras():
-            LOGGER.info("Working on camera: {}".format(camera))
+            LOGGER.info("Working on camera: {}.".format(camera))
             counter += 1
             try:
+                LOGGER.info("Retrieving image and saving to /tmp/image.jpg .")
                 self.acq_obj.retrieve(self.cfg_organizer.config_handler[camera]['url'], '/tmp/image.jpg')
             except requests.exceptions.Timeout  as e:
                 # stuff
-                LOGGER.info("Failure in camera retrieval for {}".format(camera))
+                LOGGER.info("Failure in camera retrieval for {} - csv output has NaN now.".format(camera))
                 csv_output += "{},{},NaN,".format(camera, time.time())                
                 continue
+            LOGGER.info("Performing image processing.")
             self.img_processing = ImageProcessing(yolo_path=
                                                   self.cfg_organizer.config_handler
                                                   ['system']['yolo_dir'])            
