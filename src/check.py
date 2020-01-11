@@ -12,3 +12,4 @@ for camera_number in range(1,25):
 df = pd.read_csv("../uatu.csv", index_col=False, names=namelist)
 print(namelist)
 df2 = df.fillna(0)
+print(df2['camera_count'].max())
