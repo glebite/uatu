@@ -49,7 +49,7 @@ class Uatu:
             except requests.exceptions.Timeout  as e:
                 # stuff
                 LOGGER.info("Failure in camera retrieval for {} - csv output has NaN now.".format(camera))
-                csv_output += "{},{},NaN,".format(camera, time.time())                
+                print("{},{},NaN,".format(camera, time.time()))
                 continue
             LOGGER.info("Performing image processing.")
             self.img_processing = ImageProcessing(yolo_path=
@@ -59,9 +59,8 @@ class Uatu:
             self.img_processing.preprocess_image()
             self.img_processing.process_bounding_boxes()
             self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
-            csv_output += "{},{},{},".format(camera, time.time(), self.img_processing.people_count)
+            print("{},{},{},".format(camera, time.time(), self.img_processing.people_count))
             LOGGER.info("camera: {} people: {}".format(camera,self.img_processing.people_count))
-        print(csv_output)
         
     def debug_dump(self):
         LOGGER.debug('Building camera information')
