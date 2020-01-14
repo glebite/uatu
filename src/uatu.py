@@ -9,6 +9,7 @@ import requests
 import time
 import sys
 import logging
+import pandas as pd
 
 LOGGER = logging.getLogger('uatu')
 LOGGER.setLevel(logging.DEBUG)
@@ -31,8 +32,21 @@ class Uatu:
         self.cfg_organizer = ConfigOrganizer(config_file=self.config_file)
         self.cfg_organizer.read_config_data()
         self.acq_obj = Acquisition()
+        self.current_max_count()
         LOGGER.info("Completed initialization.")
 
+    def current_max_count(self):
+        namelist = ['name', 'timestamp', 'count']
+
+        # TODO: nuke the fixed path later
+        df = pd.read_csv(self.cfg_organizer.config_handler['system']['csv_location'], index_col=False, names=namelist)
+
+        df2 = df.fillna(0)
+        camera_names = df['name'].unique()
+        df2.sort_values(by=['name', 'count'], inplace=True)
+        series = df2.groupby('name')['count'].max()
+        self.stored_values = series.to_dict()
+        
     def run(self):
         """
         run -
@@ -60,6 +74,9 @@ class Uatu:
             self.img_processing.process_bounding_boxes()
             self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
             print("{},{},{},".format(camera, time.time(), self.img_processing.people_count))
+            if int(self.stored_values[camera]) < int(self.img_processing.people_count):
+                LOGGER.info("New Max value acheived! Stored: {} New: {}".format(self.stored_values[camera],
+                                                                                self.img_processing.people_count))
             LOGGER.info("camera: {} people: {}".format(camera,self.img_processing.people_count))
         
     def debug_dump(self):
