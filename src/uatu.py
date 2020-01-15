@@ -68,7 +68,7 @@ class Uatu:
             LOGGER.info("Performing image processing.")
             self.img_processing = ImageProcessing(yolo_path=
                                                   self.cfg_organizer.config_handler
-                                                  ['system']['yolo_dir'])            
+                                                  ['system']['yolo_dir'])           
             self.img_processing.load_file('/tmp/image.jpg')
             self.img_processing.preprocess_image()
             self.img_processing.process_bounding_boxes()
@@ -77,6 +77,7 @@ class Uatu:
             if int(self.stored_values[camera]) < int(self.img_processing.people_count):
                 LOGGER.info("New Max value acheived! Stored: {} New: {}".format(self.stored_values[camera],
                                                                                 self.img_processing.people_count))
+                self.img_processing.output_adjusted_image("/tmp/{}-{}-{}.jpg".format(camera, time.time(), self.img_processing.people_count))
             LOGGER.info("camera: {} people: {}".format(camera,self.img_processing.people_count))
         
     def debug_dump(self):
