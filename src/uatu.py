@@ -19,6 +19,7 @@ FH.setFormatter(FORMATTER)
 FH.setLevel(logging.DEBUG)
 LOGGER.addHandler(FH)
 
+
 class Uatu:
     """
     Uatu - he who watches
@@ -72,12 +73,14 @@ class Uatu:
             self.img_processing.load_file('/tmp/image.jpg')
             self.img_processing.preprocess_image()
             self.img_processing.process_bounding_boxes()
+            processed_image = "/tmp/{}-{}-{}.jpg".format(camera, time.time(), self.img_processing.people_count)
             self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
-            print("{},{},{},".format(camera, time.time(), self.img_processing.people_count))
+            print("{},{},{},{}".format(camera, time.time(), self.img_processing.people_count, processed_image))
             if int(self.stored_values[camera]) < int(self.img_processing.people_count):
                 LOGGER.info("New Max value acheived! Stored: {} New: {}".format(self.stored_values[camera],
                                                                                 self.img_processing.people_count))
-                self.img_processing.output_adjusted_image("/tmp/{}-{}-{}.jpg".format(camera, time.time(), self.img_processing.people_count))
+                LOGGER.info("Camera image: {}".format(processed_image))
+                self.img_processing.output_adjusted_image(processed_image)
             LOGGER.info("camera: {} people: {}".format(camera,self.img_processing.people_count))
         
     def debug_dump(self):
