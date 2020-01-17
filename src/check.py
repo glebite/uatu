@@ -9,4 +9,5 @@ df2 = df.fillna(0)
 camera_names = df['name'].unique()
 df2.sort_values(by=['name', 'count'], inplace=True)
 series = df2.groupby('name')['count'].max()
-print(series.to_dict()['camera_17'])
+for camera in camera_names:
+    print(series.to_dict()[camera])
