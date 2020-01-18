@@ -77,7 +77,6 @@ class Uatu:
             self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
             print("{},{},{},{}".format(camera, time.time(), self.img_processing.people_count, processed_image))
             if  int(self.img_processing.people_count) > int(self.stored_values[camera]):
-                print("{} {}".format(self.img_processing.people_count, self.stored_values[camera]))
                 LOGGER.info("New Max value acheived! Stored: {} New: {}".format(self.stored_values[camera],
                                                                                 self.img_processing.people_count))
                 LOGGER.info("Camera image: {}".format(processed_image))
