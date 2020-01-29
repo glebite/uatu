@@ -17,3 +17,5 @@ Need to update anaconda, python to python3.7, install opencv, requests, and also
 
 Performed the installation and it appears to be working.
 
+Now starting to do some analysis of the results using pandas and a jupyter
+notebook.
