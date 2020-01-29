@@ -18,7 +18,7 @@ def test_image_processing_prerequisite_does_not_crash():
     ip_obj = ImageProcessing(yolo_path="../YOLO")
     ip_obj.load_file("../static-images/4_or_more_people_clinic.jpeg")
     ip_obj.preprocess_image()
-    assert ip_obj.people_count == 6
+    assert ip_obj.people_count >=4 and ip_obj.people_count <= 8
 
 @pytest.mark.test_id(4)
 def test_image_processing_prerequisite_no_people():
@@ -44,7 +44,7 @@ def test_image_processing_prerequisite_saves_reload():
     ip_obj.preprocess_image()
     ip_obj.process_bounding_boxes()
     ip_obj.output_adjusted_image("what2.jpg")    
-    assert ip_obj.people_count == 6
+    assert ip_obj.people_count >= 4 and ip_obj.people_count <= 8
 
 @pytest.mark.test_id(7)
 def test_image_processing_bad_image():

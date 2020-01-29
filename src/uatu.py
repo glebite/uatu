@@ -37,6 +37,9 @@ class Uatu:
         LOGGER.info("Completed initialization.")
 
     def current_max_count(self):
+        """
+        current_max_count - returns the current maximum count for the cameras
+        """
         namelist = ['name', 'timestamp', 'count']
 
         # TODO: nuke the fixed path later
@@ -50,7 +53,7 @@ class Uatu:
         
     def run(self):
         """
-        run -
+        run - executor method
         """
         LOGGER.info("Running.")
         csv_output = ""
