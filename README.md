@@ -19,3 +19,6 @@ Performed the installation and it appears to be working.
 
 Now starting to do some analysis of the results using pandas and a jupyter
 notebook.
+
+
+Debugging a few new ideas/approaches.
