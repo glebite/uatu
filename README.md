@@ -22,3 +22,5 @@ notebook.
 
 
 Debugging a few new ideas/approaches.
+
+Added in a convertor to change the existing csv data to an sqlite db.
