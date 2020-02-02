@@ -7,6 +7,7 @@ import logging
 from operator import itemgetter
 import sys
 from os import path
+from functools import lru_cache
 
 
 LOGGER = logging.getLogger(__name__)
@@ -41,11 +42,18 @@ class Convertor:
         LOGGER.info(f"KPI: class_size {sys.getsizeof(self)}")
 
     def record_iterator(self):
+        """
+        record_iterator - read, process and prepare for conversion one line at a time
+        """
         with open(self.input_name,'r') as input_file:
             single_line = input_file.readline()
             yield {k:v for (k,v) in zip(self.headers, single_line.split(',')[0:3])}
 
+    @lru_cache(1024)
     def convert(self):
+        """
+        convert - perform actual conversion
+        """
         for line in self.record_iterator():
             print(line)
             break
