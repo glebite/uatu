@@ -38,6 +38,9 @@ class Convertor:
         """
         LOGGER.info(f"KPI: class_size {sys.getsizeof(self)}")
 
+    def convert(self):
+        pass
+
         
 def main():
     try:
