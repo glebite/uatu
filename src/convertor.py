@@ -7,7 +7,6 @@ import logging
 from operator import itemgetter
 import sys
 from os import path
-import csv
 
 
 LOGGER = logging.getLogger(__name__)
@@ -30,6 +29,9 @@ class Convertor:
         LOGGER.info("Instantiating class")
         self.input_name = input_name
         self.output_name = output_name
+        
+        # people do count - this is why we are doing this 
+        self.headers = ['camera_name', 'timestamp', 'people_count']
 
     def KPI(self):
         """
@@ -38,8 +40,15 @@ class Convertor:
         """
         LOGGER.info(f"KPI: class_size {sys.getsizeof(self)}")
 
+    def record_iterator(self):
+        with open(self.input_name,'r') as input_file:
+            single_line = input_file.readline()
+            yield {k:v for (k,v) in zip(self.headers, single_line.split(',')[0:3])}
+
     def convert(self):
-        pass
+        for line in self.record_iterator():
+            print(line)
+            break
 
         
 def main():
@@ -55,7 +64,8 @@ def main():
         
     uatu_conv = Convertor(input_name, output_name)
     uatu_conv.KPI()
-    # uatu_conv.convert()
+    uatu_conv.convert()
+
 
 
 if __name__ == "__main__":
