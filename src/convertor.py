@@ -21,6 +21,11 @@ FH.setLevel(logging.DEBUG)
 LOGGER.addHandler(FH)
 
 
+def log_error_and_bail(message, level):
+    LOGGER.error("Index error - sys.argv needs 2 values for input and output name respectively.")
+    sys.exit(level)
+    
+
 class Convertor:
     """
     Convertor
@@ -29,7 +34,7 @@ class Convertor:
         """
         __init__ method - defines any class values needed
         """
-        LOGGER.info("Instantiating class")
+        LOGGER.info("Instantiating class.")
         self.input_name = input_name
         self.output_name = output_name
         
@@ -56,6 +61,7 @@ class Convertor:
         """
         convert - perform actual conversion
         """
+        LOGGER.info("Performing conversion.")
         for line in self.record_iterator():
             print(line)
             break
@@ -65,12 +71,9 @@ def main():
     try:
         input_name, output_name = itemgetter(1,2)(sys.argv)
     except IndexError:
-        LOGGER.error("Index error - sys.argv needs 2 values for input and output name respectively.")
-        sys.exit(-1)
-
+        log_error_and_bail("Index error - sys.argv needs 2 values for input and output name respectively.", -1)
     if not path.exists(input_name):
-        LOGGER.error(f"{input_name} does not exist.")
-        sys.exit(-2)
+        log_error_and_bail(f"{input_name} does not exist.", -2)
         
     uatu_conv = Convertor(input_name, output_name)
     uatu_conv.KPI()
