@@ -37,6 +37,9 @@ class Uatu:
         self.current_max_count()
         LOGGER.info("Completed initialization.")
 
+    def __repr__(self):
+        return f"<Uatu - path: {self.config_file}>"
+
     def current_max_count(self):
         """
         current_max_count - returns the current maximum count for the cameras
