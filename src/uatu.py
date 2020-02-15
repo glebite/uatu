@@ -9,7 +9,8 @@ import time
 import sys
 import logging
 import pandas as pd
-import concurrent.futures
+from multiprocessing import Process, Queue, Lock
+
 
 LOGGER = logging.getLogger('uatu')
 LOGGER.setLevel(logging.DEBUG)
@@ -35,9 +36,10 @@ class Uatu:
         self.acq_obj = Acquisition()
         self.current_max_count()
         LOGGER.info("Completed initialization.")
+        self.img_processing = ImageProcessing(yolo_path=self.cfg_organizer.config_handler['system']['yolo_dir'])  
 
     def __repr__(self):
-        return f"<Uatu - path: {self.config_file}>"
+        return "string"
 
     def current_max_count(self):
         """
@@ -59,28 +61,36 @@ class Uatu:
             print(f'producer_images {queue} {lock} {camera_name}')
         image_name = '/tmp/{}-image.jpg'.format(camera_name)
         try:
-            self.acq_obj(self.cfg_organizer.config_handler[camera_name]['url'],
-                         image_name)
+            self.acq_obj.retrieve(self.cfg_organizer.config_handler[camera_name]['url'], image_name)
             queue.put((camera_name, image_name))
         except Exception as e:
-            pass
+            with lock:
+                print(f'exception: {e}')
 
     def consumer_process_image(self, queue, lock):
+        counter = 1
+
         while True:
             camera_name, image_name = queue.get()
-            self.img_processing = ImageProcessing(yolo_path=
-                                                  self.cfg_organizer.config_handler
-                                                  ['system']['yolo_dir'])           
-            self.img_processing.load_file('/tmp/image.jpg')
-            self.img_processing.preprocess_image()
-            self.img_processing.process_bounding_boxes()
-            processed_image = "/tmp/{}-{}-{}.jpg".format(camera, time.time(), self.img_processing.people_count)
-            self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
+
+            try:
+                with lock:
+                    self.img_processing.load_file(f'/tmp/{camera_name}-image.jpg')
+            except IOError:
+                with lock:
+                    print(f'yup - io error - skipping {camera_name}')
+                return
             with lock:
-                print("{},{},{},{}".format(camera, time.time(), self.img_processing.people_count, processed_image))
-                if  int(self.img_processing.people_count) > int(self.stored_values[camera]):
-                                                                            self.img_processing.people_count))
-                                                                            self.img_processing.output_adjusted_image(processed_image)
+                self.img_processing.preprocess_image()
+            with lock:
+                self.img_processing.process_bounding_boxes()
+            processed_image = "/tmp/{}-{}-{}.jpg".format(camera_name, time.time(), self.img_processing.people_count)
+            with lock:
+                self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
+            with lock:
+                print("{},{},{},{}".format(camera_name, time.time(), self.img_processing.people_count, processed_image))
+            # if  int(self.img_processing.people_count) > int(self.stored_values[camera_name]):
+            self.img_processing.output_adjusted_image(processed_image)
 
     def doit(self):
         cameras = self.cfg_organizer.find_cameras()
@@ -93,8 +103,8 @@ class Uatu:
         for camera_name in cameras:
             producers.append(Process(target=self.producer_images(queue, lock, camera_name)))
 
-        for i in range(len(names) * 2):
-            p = Process(target=consumer_process_image, args=(queue,lock))
+        for i in range(len(cameras) * 2):
+            p = Process(target=self.consumer_process_image, args=(queue,lock))
             p.daemon = True
             consumers.append(p)
 
@@ -151,4 +161,4 @@ class Uatu:
 
 if __name__ == "__main__":
     UATU_OBJ = Uatu(sys.argv[1])
-    UATU_OBJ.run()
+    UATU_OBJ.doit()
