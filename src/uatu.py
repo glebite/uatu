@@ -4,7 +4,6 @@ uatu.py - he who watches
 from image_processing import ImageProcessing
 from config_organizer import ConfigOrganizer
 from acquisition import Acquisition
-import random
 import requests
 import time
 import sys
@@ -55,27 +54,58 @@ class Uatu:
         series = df2.groupby('name')['count'].max()
         self.stored_values = series.to_dict()
 
-    def acquire_images(self):
-        """
-        acquire_images
-        """
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            camera_futures = {executor.submit(self.acq_obj.retrieve,self.cfg_organizer.config_handler[camera]['url'], '/tmp/{}-image.jpg'.format(camera)): camera for camera in self.cfg_organizer.find_cameras()}
-            for future in concurrent.futures.as_completed(camera_futures):
-                camera = camera_futures[future]
-                try:
-                    data = future.result()
-                    LOGGER.info(f'data? {data}')
-                except Exception as e:
-                    LOGGER.error(f'exception {e}')
-                else:
-                    LOGGER.info('got it')
+    def producer_images(self, queue, lock, camera_name):
+        with lock:
+            print(f'producer_images {queue} {lock} {camera_name}')
+        image_name = '/tmp/{}-image.jpg'.format(camera_name)
+        try:
+            self.acq_obj(self.cfg_organizer.config_handler[camera_name]['url'],
+                         image_name)
+            queue.put((camera_name, image_name))
+        except Exception as e:
+            pass
 
-    def process_images(self):
-        """
-        process_images
-        """
-        pass
+    def consumer_process_image(self, queue, lock):
+        while True:
+            camera_name, image_name = queue.get()
+            self.img_processing = ImageProcessing(yolo_path=
+                                                  self.cfg_organizer.config_handler
+                                                  ['system']['yolo_dir'])           
+            self.img_processing.load_file('/tmp/image.jpg')
+            self.img_processing.preprocess_image()
+            self.img_processing.process_bounding_boxes()
+            processed_image = "/tmp/{}-{}-{}.jpg".format(camera, time.time(), self.img_processing.people_count)
+            self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
+            with lock:
+                print("{},{},{},{}".format(camera, time.time(), self.img_processing.people_count, processed_image))
+                if  int(self.img_processing.people_count) > int(self.stored_values[camera]):
+                                                                            self.img_processing.people_count))
+                                                                            self.img_processing.output_adjusted_image(processed_image)
+
+    def doit(self):
+        cameras = self.cfg_organizer.find_cameras()
+        queue = Queue()
+
+        lock = Lock()
+        producers = []
+        consumers = []
+
+        for camera_name in cameras:
+            producers.append(Process(target=self.producer_images(queue, lock, camera_name)))
+
+        for i in range(len(names) * 2):
+            p = Process(target=consumer_process_image, args=(queue,lock))
+            p.daemon = True
+            consumers.append(p)
+
+        for p in producers:
+            p.start()
+
+        for c in consumers:
+            c.start()
+
+        for p in producers:
+            p.join()
 
     def run(self):
         """
