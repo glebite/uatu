@@ -10,6 +10,7 @@ import time
 import sys
 import logging
 import pandas as pd
+import concurrent.futures
 
 LOGGER = logging.getLogger('uatu')
 LOGGER.setLevel(logging.DEBUG)
@@ -50,7 +51,20 @@ class Uatu:
         df2.sort_values(by=['name', 'count'], inplace=True)
         series = df2.groupby('name')['count'].max()
         self.stored_values = series.to_dict()
-        
+
+    def acquire_images(self):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            camera_futures = {executor.submit(self.acq_obj.retrieve,self.cfg_organizer.config_handler[camera]['url'], '/tmp/{}-image.jpg'.format(camera)): camera for camera in self.cfg_organizer.find_cameras()}
+            for future in concurrent.futures.as_completed(camera_futures):
+                camera = camera_futures[future]
+                try:
+                    data = future.result()
+                    LOGGER.info(f'data? {data}')
+                except Exception as e:
+                    LOGGER.error(f'exception {e}')
+                else:
+                    LOGGER.info('got it')  
+
     def run(self):
         """
         run - executor method
