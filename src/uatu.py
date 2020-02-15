@@ -53,6 +53,9 @@ class Uatu:
         self.stored_values = series.to_dict()
 
     def acquire_images(self):
+        """
+        acquire_images
+        """
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             camera_futures = {executor.submit(self.acq_obj.retrieve,self.cfg_organizer.config_handler[camera]['url'], '/tmp/{}-image.jpg'.format(camera)): camera for camera in self.cfg_organizer.find_cameras()}
             for future in concurrent.futures.as_completed(camera_futures):
@@ -63,7 +66,13 @@ class Uatu:
                 except Exception as e:
                     LOGGER.error(f'exception {e}')
                 else:
-                    LOGGER.info('got it')  
+                    LOGGER.info('got it')
+
+    def process_images(self):
+        """
+        process_images
+        """
+        pass
 
     def run(self):
         """
