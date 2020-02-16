@@ -24,3 +24,9 @@ notebook.
 Debugging a few new ideas/approaches.
 
 Added in a convertor to change the existing csv data to an sqlite db.
+
+# producer/consumer change
+I changed the sequential acquisition/processing to use a producer/consumer
+model.  It is awesome!  Now just need to polish a few warts w.r.t. the last
+camera not coming up and then add sqlite db output.
+
