@@ -1,15 +1,15 @@
-"""
-uatu.py - he who watches
-"""
 from image_processing import ImageProcessing
-from config_organizer import ConfigOrganizer
 from acquisition import Acquisition
+from config_organizer import ConfigOrganizer
+
 import requests
 import time
 import sys
 import logging
 import pandas as pd
-from multiprocessing import Process, Queue, Lock
+import threading
+from multiprocessing import Lock
+from queue import Queue
 
 
 LOGGER = logging.getLogger('uatu')
@@ -20,6 +20,7 @@ FH.setFormatter(FORMATTER)
 FH.setLevel(logging.DEBUG)
 LOGGER.addHandler(FH)
 
+NUM_WORKER_THREADS = 4
 
 class Uatu:
     """
@@ -47,7 +48,6 @@ class Uatu:
         """
         namelist = ['name', 'timestamp', 'count']
 
-        # TODO: nuke the fixed path later
         df = pd.read_csv(self.cfg_organizer.config_handler['system']['csv_location'], index_col=False, names=namelist)
 
         df2 = df.fillna(0)
@@ -56,29 +56,35 @@ class Uatu:
         series = df2.groupby('name')['count'].max()
         self.stored_values = series.to_dict()
 
-    def producer_images(self, queue, lock, camera_name):
-        with lock:
-            print(f'producer_images {queue} {lock} {camera_name}')
-        image_name = '/tmp/{}-image.jpg'.format(camera_name)
-        try:
-            self.acq_obj.retrieve(self.cfg_organizer.config_handler[camera_name]['url'], image_name)
-            queue.put((camera_name, image_name))
-        except Exception as e:
-            with lock:
-                print(f'exception: {e}')
-
-    def consumer_process_image(self, queue, lock):
-        counter = 1
-
+    def producer_images(self, pqueue, cqueue, lock):
         while True:
-            camera_name, image_name = queue.get()
-
+            if not pqueue.empty():
+                camera_name = pqueue.get()
+                image_name = '/tmp/{}-image.jpg'.format(camera_name)
+                try:
+                    self.acq_obj.retrieve(self.cfg_organizer.config_handler[camera_name]['url'], image_name)
+                    with lock:
+                        LOGGER.debug(f'retrieved image: {camera_name}')
+                    cqueue.put((camera_name, image_name))
+                except Exception as e:
+                    with lock:
+                        LOGGER.debug(f'exception: {e}')
+        # pqueue.task_done()
+        
+    def consumer_process_image(self, cqueue, lock):
+        counter = 1
+        while True:
+            if cqueue.empty():
+                continue
+            camera_name, image_name = cqueue.get()
+            with lock:
+                LOGGER.debug(f'processing camera: {camera_name}')
             try:
                 with lock:
                     self.img_processing.load_file(f'/tmp/{camera_name}-image.jpg')
             except IOError:
                 with lock:
-                    print(f'yup - io error - skipping {camera_name}')
+                    LOGGER.debug(f'yup - io error - skipping {camera_name}')
                 return
             with lock:
                 self.img_processing.preprocess_image()
@@ -89,69 +95,34 @@ class Uatu:
                 self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
             with lock:
                 print("{},{},{},{}".format(camera_name, time.time(), self.img_processing.people_count, processed_image))
-            # if  int(self.img_processing.people_count) > int(self.stored_values[camera_name]):
-            self.img_processing.output_adjusted_image(processed_image)
+            if  int(self.img_processing.people_count) > int(self.stored_values[camera_name]):
+                self.img_processing.output_adjusted_image(processed_image)
 
     def doit(self):
-        cameras = self.cfg_organizer.find_cameras()
-        queue = Queue()
-
-        lock = Lock()
-        producers = []
-        consumers = []
-
-        for camera_name in cameras:
-            producers.append(Process(target=self.producer_images(queue, lock, camera_name)))
-
-        for i in range(len(cameras) * 2):
-            p = Process(target=self.consumer_process_image, args=(queue,lock))
-            p.daemon = True
-            consumers.append(p)
-
-        for p in producers:
-            p.start()
-
-        for c in consumers:
-            c.start()
-
-        for p in producers:
-            p.join()
-
-    def run(self):
-        """
-        run - executor method
-        """
-        LOGGER.info("Running.")
-        csv_output = ""
-        counter = 1
-        for camera in self.cfg_organizer.find_cameras():
-            LOGGER.info("Working on camera: {}.".format(camera))
-            counter += 1
-            try:
-                LOGGER.info("Retrieving image and saving to /tmp/image.jpg .")
-                self.acq_obj.retrieve(self.cfg_organizer.config_handler[camera]['url'], '/tmp/image.jpg')
-            except requests.exceptions.Timeout  as e:
-                # stuff
-                LOGGER.info("Failure in camera retrieval for {} - csv output has NaN now.".format(camera))
-                print("{},{},NaN,".format(camera, time.time()))
-                continue
-            LOGGER.info("Performing image processing.")
-            self.img_processing = ImageProcessing(yolo_path=
-                                                  self.cfg_organizer.config_handler
-                                                  ['system']['yolo_dir'])           
-            self.img_processing.load_file('/tmp/image.jpg')
-            self.img_processing.preprocess_image()
-            self.img_processing.process_bounding_boxes()
-            processed_image = "/tmp/{}-{}-{}.jpg".format(camera, time.time(), self.img_processing.people_count)
-            self.img_processing.output_adjusted_image('/tmp/what-{}.jpg'.format(counter))
-            print("{},{},{},{}".format(camera, time.time(), self.img_processing.people_count, processed_image))
-            if  int(self.img_processing.people_count) > int(self.stored_values[camera]):
-                LOGGER.info("New Max value acheived! Stored: {} New: {}".format(self.stored_values[camera],
-                                                                                self.img_processing.people_count))
-                LOGGER.info("Camera image: {}".format(processed_image))
-                self.img_processing.output_adjusted_image(processed_image)
-            LOGGER.info("camera: {} people: {}".format(camera,self.img_processing.people_count))
+        self.current_max_count()
         
+        pqueue = Queue(maxsize = 0)
+        cqueue = Queue(maxsize = 0)
+        
+        lock = Lock()
+
+        for i in range(NUM_WORKER_THREADS):
+            pworker = threading.Thread(target=self.producer_images, args=(pqueue, cqueue, lock))
+            pworker.daemon = True
+            pworker.start()
+            LOGGER.debug('initiated pworkers')
+            cworker = threading.Thread(target=self.consumer_process_image, args=(cqueue, lock))
+            cworker.daemon = True
+            cworker.start()
+            LOGGER.debug('initiated workers')
+        
+        cameras = self.cfg_organizer.find_cameras()
+        for camera_name in cameras:
+            LOGGER.debug(f'Loading {camera_name} into pqueue')
+            pqueue.put(camera_name)
+            
+        cworker.join()
+
     def debug_dump(self):
         LOGGER.debug('Building camera information')
         for camera in self.cfg_organizer.find_cameras():

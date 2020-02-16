@@ -94,28 +94,20 @@ class ImageProcessing:
             # TODO: raise an exception
             print("Error...  not loaded - cannot process")
         else:
-            print("blob to be...")
             try:
                 blob = cv2.dnn.blobFromImage(self.raw_image, 1 / 255.0,
                                              (416, 416), swapRB=True, crop=False)
-                print('made blob really?')
             except Exception as e:
                 print(f'fuck me harder {e}')
-            print('made blob')
             self.net.setInput(blob)
-            print('set input to blob')
             layer_outputs = self.net.forward(self.layer_names)
-            print('yup - layer_outputs is good...')
             self.boxes = []
             self.confidences = []
             self.class_ids = []
             self.args = {'confidence': 0.8, 'threshold': 0.8}
 
-            print("yup prepped things")
             for output in layer_outputs:
-                print("processing output")
                 for detection in output:
-                    print("detection...")
                     scores = detection[5:]
                     class_id = np.argmax(scores)
                     confidence = scores[class_id]
